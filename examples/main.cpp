@@ -120,6 +120,48 @@ int main() {
     std::cout << "T * inverse(T) (≒identity):\n" << T * invT << std::endl;
 
     // =========================================================================
-    // stream in/out
+    // fastmath
+    // =========================================================================
+
+    std::cout << "\n=== fastmath ===" << std::endl;
+
+    // rsqrt_quake
+    float rv = 2.0f;
+    float ref_rsqrt = 1.0f / std::sqrt(rv);
+    float quake_rsqrt = rsqrt_quake(rv);
+    std::cout << "rsqrt_quake(2.0)  = " << quake_rsqrt << "  (std: " << ref_rsqrt
+              << ", diff: " << (quake_rsqrt - ref_rsqrt) << ")" << std::endl;
+
+    // fast_atan2 (各 Order と std::atan2 の比較)
+    float ay = 1.0f, ax = 1.0f; // 45度
+    float ref_a2 = std::atan2(ay, ax);
+    std::cout << "\nfast_atan2(1, 1)  ref=" << ref_a2 << std::endl;
+    std::cout << "  Order=1  val=" << fast_atan2<1>(ay, ax)
+              << "  diff=" << (fast_atan2<1>(ay, ax) - ref_a2) << std::endl;
+    std::cout << "  Order=2  val=" << fast_atan2<2>(ay, ax)
+              << "  diff=" << (fast_atan2<2>(ay, ax) - ref_a2) << std::endl;
+    std::cout << "  Order=3  val=" << fast_atan2<3>(ay, ax)
+              << "  diff=" << (fast_atan2<3>(ay, ax) - ref_a2) << std::endl;
+
+    // fast_asin (各 Order と std::asin の比較)
+    float sx = 0.5f; // 30度
+    float ref_as = std::asin(sx);
+    std::cout << "\nfast_asin(0.5)    ref=" << ref_as << std::endl;
+    std::cout << "  Order=1  val=" << fast_asin<1>(sx) << "  diff=" << (fast_asin<1>(sx) - ref_as)
+              << std::endl;
+    std::cout << "  Order=2  val=" << fast_asin<2>(sx) << "  diff=" << (fast_asin<2>(sx) - ref_as)
+              << std::endl;
+    std::cout << "  Order=3  val=" << fast_asin<3>(sx) << "  diff=" << (fast_asin<3>(sx) - ref_as)
+              << std::endl;
+
+    // fast_normalize (std::normalize との比較)
+    vec3f nv{3.0f, 4.0f, 0.0f};
+    vec3f ref_n = normalize(nv);
+    vec3f fast_n = fast_normalize(nv);
+    std::cout << "\nfast_normalize({3,4,0})" << std::endl;
+    std::cout << "  std::normalize = " << ref_n << "  length=" << length(ref_n) << std::endl;
+    std::cout << "  fast_normalize = " << fast_n << "  length=" << length(fast_n) << std::endl;
+    std::cout << "  diff = " << (fast_n - ref_n) << std::endl;
+
     return 0;
 }
