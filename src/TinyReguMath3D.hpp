@@ -1,4 +1,6 @@
 #pragma once
+#include "aabb2.hpp"
+#include "aabb3.hpp"
 #include "cg.hpp"
 #include "fastmath.hpp"
 #include "io.hpp"
@@ -18,7 +20,9 @@ namespace trm3d {
     using vec3##suffix = vec3<T>;                                                                  \
     using vec4##suffix = vec4<T>;                                                                  \
     using mat3##suffix = mat3<T>;                                                                  \
-    using mat4##suffix = mat4<T>;
+    using mat4##suffix = mat4<T>;                                                                  \
+    using aabb2##suffix = aabb2<T>;                                                                \
+    using aabb3##suffix = aabb3<T>;
 
 TRMD_VECMAT_ALIAS(f, float)
 TRMD_VECMAT_ALIAS(d, double)

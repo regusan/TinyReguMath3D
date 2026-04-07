@@ -1,4 +1,6 @@
 #pragma once
+#include "aabb2.hpp"
+#include "aabb3.hpp"
 #include "mat3.hpp"
 #include "mat4.hpp"
 #include "vec2.hpp"
@@ -40,6 +42,14 @@ template <typename T> std::ostream& operator<<(std::ostream& os, const mat4<T>& 
         os << '\n';
     }
     return os << ')';
+}
+
+template <typename T> std::ostream& operator<<(std::ostream& os, const aabb2<T>& b) {
+    return os << "aabb2(pos=" << b.pos << ", size=" << b.size << ')';
+}
+
+template <typename T> std::ostream& operator<<(std::ostream& os, const aabb3<T>& b) {
+    return os << "aabb3(pos=" << b.pos << ", size=" << b.size << ')';
 }
 
 } // namespace trm3d
