@@ -27,7 +27,7 @@ inline float rsqrt_quake(float x) {
 // Order=2:  5次
 // Order=1:  3次
 // Order=3:  9次
-template <int Order, typename T> T fast_atan(T x) {
+template <int Order = 1, typename T> T fast_atan(T x) {
     static_assert(Order >= 1 && Order <= 3, "fast_atan: Order は 1, 2, 3 のみ有効");
     T x2 = x * x;
     if constexpr (Order == 1) {
@@ -44,7 +44,7 @@ template <int Order, typename T> T fast_atan(T x) {
 }
 
 // atan2(y, x) の高速近似 (全象限対応)
-template <int Order, typename T> T fast_atan2(T y, T x) {
+template <int Order = 1, typename T> T fast_atan2(T y, T x) {
     static_assert(Order >= 1 && Order <= 3, "fast_atan2: Order は 1, 2, 3 のみ有効");
     constexpr T pi = T(3.14159265358979323846);
     constexpr T half_pi = pi / T(2);
@@ -75,7 +75,7 @@ template <int Order, typename T> T fast_atan2(T y, T x) {
 // asin(x) = atan2(x, sqrt(1-x²)) として fast_atan2 を使用
 // rsqrt_quake で sqrt を高速化。x=±1 は端点クランプで保護
 // x の範囲: [-1, 1]、float 専用
-template <int Order> float fast_asin(float x) {
+template <int Order = 1> float fast_asin(float x) {
     static_assert(Order >= 1 && Order <= 3, "fast_asin: Order は 1, 2, 3 のみ有効");
     constexpr float half_pi = 1.5707963267948966f;
     float s = 1.0f - x * x;
