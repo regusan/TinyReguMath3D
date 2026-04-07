@@ -22,16 +22,24 @@ inline float rsqrt_quake(float x) {
     return y;
 }
 
-// |x| <= 1 の範囲で atan(x) をミニマックス多項式で近似する内部関数
+// x∈[0,1] で atan(x) をミニマックス多項式で近似する内部関数
+// 係数はすべて x=1 で合計が π/4 になるよう設計
+// Order=2:  5次
+// Order=1:  3次
+// Order=3:  9次
 template <int Order, typename T> T fast_atan(T x) {
     static_assert(Order >= 1 && Order <= 3, "fast_atan: Order は 1, 2, 3 のみ有効");
     T x2 = x * x;
-    if constexpr (Order == 1) { // Order=1: 3次多項式
+    if constexpr (Order == 1) {
         return x * (T(0.9998) + x2 * T(-0.2148));
-    } else if constexpr (Order == 2) { // Order=2: 5次多項式
-        return x * (T(0.9997) + x2 * (T(-0.3301) + x2 * T(0.1801)));
-    } else { // Order=3: 7次多項式
-        return x * (T(0.9998676) + x2 * (T(-0.3302995) + x2 * (T(0.1801410) + x2 * T(-0.0851330))));
+    } else if constexpr (Order == 2) {
+        // 末項を π/4 に一致させるよう調整: 0.9998660 - 0.3302995 + a2 = π/4 → a2 = 0.1158431
+        return x * (T(0.9998660) + x2 * (T(-0.3302995) + x2 * T(0.1158431)));
+    } else {
+        // A&S 4.4.49 完全5項、合計 = 0.9998660-0.3302995+0.1801410-0.0851330+0.0208351 ≈ π/4
+        return x * (T(0.9998660) +
+                    x2 * (T(-0.3302995) +
+                          x2 * (T(0.1801410) + x2 * (T(-0.0851330) + x2 * T(0.0208351)))));
     }
 }
 
@@ -64,11 +72,18 @@ template <int Order, typename T> T fast_atan2(T y, T x) {
 }
 
 // asin(x) の高速近似
-// asin(x) = atan(x * rsqrt(1 - x²)) として rsqrt_quake を使用
+// asin(x) = atan2(x, sqrt(1-x²)) として fast_atan2 を使用
+// rsqrt_quake で sqrt を高速化。x=±1 は端点クランプで保護
 // x の範囲: [-1, 1]、float 専用
 template <int Order> float fast_asin(float x) {
     static_assert(Order >= 1 && Order <= 3, "fast_asin: Order は 1, 2, 3 のみ有効");
-    return fast_atan<Order>(x * rsqrt_quake(1.0f - x * x));
+    constexpr float half_pi = 1.5707963267948966f;
+    float s = 1.0f - x * x;
+    if (s <= 0.0f)
+        return x > 0.0f ? half_pi : -half_pi;
+    // sqrt(s) = s * rsqrt(s) で除算を避ける
+    float cos_val = s * rsqrt_quake(s);
+    return fast_atan2<Order>(x, cos_val);
 }
 
 // rsqrt_quake による高速 normalize (精度 ~23bit)

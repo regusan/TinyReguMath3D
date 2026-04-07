@@ -1,6 +1,7 @@
 #include <TinyReguMath3D.hpp>
 #include <cmath>
 #include <iostream>
+#include <vector>
 
 int main() {
     using namespace trm3d;
@@ -125,43 +126,80 @@ int main() {
 
     std::cout << "\n=== fastmath ===" << std::endl;
 
-    // rsqrt_quake
-    float rv = 2.0f;
-    float ref_rsqrt = 1.0f / std::sqrt(rv);
-    float quake_rsqrt = rsqrt_quake(rv);
-    std::cout << "rsqrt_quake(2.0)  = " << quake_rsqrt << "  (std: " << ref_rsqrt
-              << ", diff: " << (quake_rsqrt - ref_rsqrt) << ")" << std::endl;
+    const float deg2rad = pi / 180.0f;
 
-    // fast_atan2 (各 Order と std::atan2 の比較)
-    float ay = 1.0f, ax = 1.0f; // 45度
-    float ref_a2 = std::atan2(ay, ax);
-    std::cout << "\nfast_atan2(1, 1)  ref=" << ref_a2 << std::endl;
-    std::cout << "  Order=1  val=" << fast_atan2<1>(ay, ax)
-              << "  diff=" << (fast_atan2<1>(ay, ax) - ref_a2) << std::endl;
-    std::cout << "  Order=2  val=" << fast_atan2<2>(ay, ax)
-              << "  diff=" << (fast_atan2<2>(ay, ax) - ref_a2) << std::endl;
-    std::cout << "  Order=3  val=" << fast_atan2<3>(ay, ax)
-              << "  diff=" << (fast_atan2<3>(ay, ax) - ref_a2) << std::endl;
+    // 誤差統計を計算するラムダ (絶対値平均・分散)
+    auto stats = [](const std::vector<float>& errs) -> std::pair<float, float> {
+        float mean = 0.0f;
+        for (float e : errs)
+            mean += std::abs(e);
+        mean /= static_cast<float>(errs.size());
+        float var = 0.0f;
+        for (float e : errs)
+            var += (std::abs(e) - mean) * (std::abs(e) - mean);
+        var /= static_cast<float>(errs.size());
+        return {mean, var};
+    };
 
-    // fast_asin (各 Order と std::asin の比較)
-    float sx = 0.5f; // 30度
-    float ref_as = std::asin(sx);
-    std::cout << "\nfast_asin(0.5)    ref=" << ref_as << std::endl;
-    std::cout << "  Order=1  val=" << fast_asin<1>(sx) << "  diff=" << (fast_asin<1>(sx) - ref_as)
-              << std::endl;
-    std::cout << "  Order=2  val=" << fast_asin<2>(sx) << "  diff=" << (fast_asin<2>(sx) - ref_as)
-              << std::endl;
-    std::cout << "  Order=3  val=" << fast_asin<3>(sx) << "  diff=" << (fast_asin<3>(sx) - ref_as)
-              << std::endl;
+    // fast_atan2: -180°〜179° を 1° 刻みで (y=sin θ, x=cos θ)
+    {
+        std::cout << "\n[fast_atan2] -180〜179deg, 1deg刻み (360サンプル)" << std::endl;
 
-    // fast_normalize (std::normalize との比較)
-    vec3f nv{3.0f, 4.0f, 0.0f};
-    vec3f ref_n = normalize(nv);
-    vec3f fast_n = fast_normalize(nv);
-    std::cout << "\nfast_normalize({3,4,0})" << std::endl;
-    std::cout << "  std::normalize = " << ref_n << "  length=" << length(ref_n) << std::endl;
-    std::cout << "  fast_normalize = " << fast_n << "  length=" << length(fast_n) << std::endl;
-    std::cout << "  diff = " << (fast_n - ref_n) << std::endl;
+        std::vector<float> e1, e2, e3;
+        for (int deg = -180; deg < 180; ++deg) {
+            float th = deg * deg2rad;
+            float y = std::sin(th);
+            float x = std::cos(th);
+            float ref = std::atan2(y, x);
+            e1.push_back(fast_atan2<1>(y, x) - ref);
+            e2.push_back(fast_atan2<2>(y, x) - ref);
+            e3.push_back(fast_atan2<3>(y, x) - ref);
+        }
+
+        auto [m1, v1] = stats(e1);
+        auto [m2, v2] = stats(e2);
+        auto [m3, v3] = stats(e3);
+        std::cout << "  Order=1  mean=" << m1 << "  var=" << v1 << std::endl;
+        std::cout << "  Order=2  mean=" << m2 << "  var=" << v2 << std::endl;
+        std::cout << "  Order=3  mean=" << m3 << "  var=" << v3 << std::endl;
+    }
+
+    // fast_asin: -90°〜90° を 1° 刻みで (x=sin θ)
+    {
+        std::cout << "\n[fast_asin] -90〜90deg, 1deg刻み (181サンプル)" << std::endl;
+
+        std::vector<float> e1, e2, e3;
+        for (int deg = -90; deg <= 90; ++deg) {
+            float x = std::sin(deg * deg2rad);
+            float ref = std::asin(x);
+            e1.push_back(fast_asin<1>(x) - ref);
+            e2.push_back(fast_asin<2>(x) - ref);
+            e3.push_back(fast_asin<3>(x) - ref);
+        }
+
+        auto [m1, v1] = stats(e1);
+        auto [m2, v2] = stats(e2);
+        auto [m3, v3] = stats(e3);
+        std::cout << "  Order=1  mean=" << m1 << "  var=" << v1 << std::endl;
+        std::cout << "  Order=2  mean=" << m2 << "  var=" << v2 << std::endl;
+        std::cout << "  Order=3  mean=" << m3 << "  var=" << v3 << std::endl;
+    }
+
+    // fast_normalize: 1°刻みで方向ベクトルを正規化し length の誤差を測定
+    {
+        std::cout << "\n[fast_normalize] 0〜359deg, 1deg刻み (360サンプル)" << std::endl;
+
+        std::vector<float> errs;
+        for (int deg = 0; deg < 360; ++deg) {
+            float th = deg * deg2rad;
+            vec3f v{std::cos(th), std::sin(th), 0.0f};
+            float len = length(fast_normalize(v));
+            errs.push_back(len - 1.0f);
+        }
+
+        auto [m, var] = stats(errs);
+        std::cout << "  length誤差  mean=" << m << "  var=" << var << std::endl;
+    }
 
     return 0;
 }
