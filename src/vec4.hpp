@@ -1,6 +1,6 @@
 #pragma once
+#include <cassert>
 #include <cmath>
-#include <stdexcept>
 
 namespace trm3d {
 
@@ -33,7 +33,8 @@ template <typename T> struct vec4 {
         case 3:
             return w;
         default:
-            throw std::out_of_range("vec4: index out of range");
+            assert(false && "vec4: index out of range");
+            return x;
         }
     }
     const T& operator[](int i) const {
@@ -47,7 +48,8 @@ template <typename T> struct vec4 {
         case 3:
             return w;
         default:
-            throw std::out_of_range("vec4: index out of range");
+            assert(false && "vec4: index out of range");
+            return x;
         }
     }
 

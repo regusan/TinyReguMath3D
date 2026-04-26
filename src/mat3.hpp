@@ -1,7 +1,7 @@
 #pragma once
 #include "vec3.hpp"
+#include <cassert>
 #include <cmath>
-#include <stdexcept>
 
 namespace trm3d {
 
@@ -32,7 +32,8 @@ template <typename T> struct mat3 {
         case 2:
             return cols[2];
         default:
-            throw std::out_of_range("mat3: index out of range");
+            assert(false && "mat3: index out of range");
+            return cols[0];
         }
     }
     const vec3<T>& operator[](int i) const {
@@ -44,7 +45,8 @@ template <typename T> struct mat3 {
         case 2:
             return cols[2];
         default:
-            throw std::out_of_range("mat3: index out of range");
+            assert(false && "mat3: index out of range");
+            return cols[0];
         }
     }
 
