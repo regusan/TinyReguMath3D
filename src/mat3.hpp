@@ -19,6 +19,10 @@ template <typename T> struct mat3 {
     explicit constexpr mat3(T s)
         : cols{vec3<T>(s, T(0), T(0)), vec3<T>(T(0), s, T(0)), vec3<T>(T(0), T(0), s)} {}
 
+    template <typename Mat4T>
+    explicit constexpr mat3(const Mat4T& m)
+        : cols{vec3<T>(m[0]), vec3<T>(m[1]), vec3<T>(m[2])} {}
+
     vec3<T>& operator[](int i) {
         switch (i) {
         case 0:

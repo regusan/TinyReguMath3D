@@ -19,6 +19,9 @@ template <typename T> struct vec3 {
     constexpr vec3(T x_, T y_, T z_) : x(x_), y(y_), z(z_) {}
     explicit constexpr vec3(T s) : x(s), y(s), z(s) {}
 
+    template <typename Vec4T>
+    explicit constexpr vec3(const Vec4T& v4) : x(v4.x), y(v4.y), z(v4.z) {}
+
     T& operator[](int i) {
         switch (i) {
         case 0:
