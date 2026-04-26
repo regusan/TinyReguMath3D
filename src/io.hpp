@@ -1,4 +1,7 @@
 #pragma once
+
+#ifndef TRM3D_NO_IOSTREAM
+
 #include "aabb2.hpp"
 #include "aabb3.hpp"
 #include "mat3.hpp"
@@ -53,3 +56,5 @@ template <typename T> std::ostream& operator<<(std::ostream& os, const aabb3<T>&
 }
 
 } // namespace trm3d
+
+#endif // TRM3D_NO_IOSTREAM
